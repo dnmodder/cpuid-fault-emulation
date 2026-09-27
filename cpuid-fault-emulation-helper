@@ -1,0 +1,31 @@
+#!/bin/sh
+# Hardened helper for cpuid-fault-emulation.service
+set -eu
+export PATH="/usr/bin:/bin"
+IFS=' 	
+'
+
+case "${1-}" in
+    start)
+        if /usr/bin/lsmod | /usr/bin/grep -q "^kvm_amd"; then
+            /usr/bin/modprobe -r kvm_amd
+        elif /usr/bin/lsmod | /usr/bin/grep -q "^kvm_intel"; then
+            /usr/bin/modprobe -r kvm_intel
+        fi
+        /usr/bin/modprobe -r kvm 2>/dev/null || true
+        /usr/bin/modprobe cpuid_fault_emulation
+        ;;
+    stop)
+        /usr/bin/modprobe -r cpuid_fault_emulation 2>/dev/null || true
+        /usr/bin/modprobe kvm 2>/dev/null || true
+        if /usr/bin/grep -q "AuthenticAMD" /proc/cpuinfo; then
+            /usr/bin/modprobe kvm_amd 2>/dev/null || true
+        elif /usr/bin/grep -q "GenuineIntel" /proc/cpuinfo; then
+            /usr/bin/modprobe kvm_intel 2>/dev/null || true
+        fi
+        ;;
+    *)
+        echo "Usage: $0 {start|stop}" >&2
+        exit 1
+        ;;
+esac

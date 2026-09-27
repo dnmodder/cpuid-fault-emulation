@@ -1,0 +1,13 @@
+[Unit]
+Description=CPUID Fault Emulation Kernel Module Service
+DefaultDependencies=no
+After=systemd-modules-load.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/lib/cpuid-fault-emulation/cpuid-fault-emulation-helper start
+ExecStop=/usr/lib/cpuid-fault-emulation/cpuid-fault-emulation-helper stop
+
+[Install]
+WantedBy=multi-user.target
